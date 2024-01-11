@@ -5,6 +5,12 @@ import { Observable, interval, map } from 'rxjs';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+//TODO
+// 5 subjects, 1 a 5
+// Html com:
+//  5 butoes para enviar um event a partir de cada um dos subjects e
+//  5 butoes para subscrever a cada um dos streams, muda de cor de estiver a escuta (vermelho, verde).
+
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
