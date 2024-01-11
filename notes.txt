@@ -1,0 +1,2 @@
+Dinamic urls funcionam
+O browser tenta-se reconectar automaticamente

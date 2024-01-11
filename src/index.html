@@ -1,0 +1,12 @@
+<script type="text/javascript">
+  function randomLetter() {
+    return '12345'.charAt(Math.floor(Math.random() * 5));
+  }
+
+  const eventSource = new EventSource('/sse/' + randomLetter());
+  eventSource.onmessage = ({ data }) => {
+    const message = document.createElement('li');
+    message.innerText = 'New message: ' + data;
+    document.body.appendChild(message);
+  };
+</script>
