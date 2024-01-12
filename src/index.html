@@ -1,12 +1,86 @@
+<html>
+  <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+
+    <style>
+      .w-170 {
+        width: 170px;
+      }
+    </style>
+  </head>
+  <div class="p-2">
+    <button id="btn-pub1" type="button" class="w-170 btn btn-primary" onclick="publishEvent(1)">
+      Publish to channel 1
+    </button>
+    <button id="btn-pub2" type="button" class="w-170 btn btn-primary" onclick="publishEvent(2)">
+      Publish to channel 2
+    </button>
+    <button id="btn-pub3" type="button" class="w-170 btn btn-primary" onclick="publishEvent(3)">
+      Publish to channel 3
+    </button>
+    <button id="btn-pub4" type="button" class="w-170 btn btn-primary" onclick="publishEvent(4)">
+      Publish to channel 4
+    </button>
+    <button id="btn-pub5" type="button" class="w-170 btn btn-primary" onclick="publishEvent(5)">
+      Publish to channel 5
+    </button>
+  </div>
+  <div class="p-2">
+    <button id="btn-sub1" type="button" class="w-170 btn btn-danger" onclick="subscribeToEvent(1)">
+      Listen to channel 1
+    </button>
+    <button id="btn-sub2" type="button" class="w-170 btn btn-danger" onclick="subscribeToEvent(2)">
+      Listen to channel 2
+    </button>
+    <button id="btn-sub3" type="button" class="w-170 btn btn-danger" onclick="subscribeToEvent(3)">
+      Listen to channel 3
+    </button>
+    <button id="btn-sub4" type="button" class="w-170 btn btn-danger" onclick="subscribeToEvent(4)">
+      Listen to channel 4
+    </button>
+    <button id="btn-sub5" type="button" class="w-170 btn btn-danger" onclick="subscribeToEvent(5)">
+      Listen to channel 5
+    </button>
+  </div>
+</html>
+
 <script type="text/javascript">
+  function publishEvent(eventNumber) {
+    fetch('/events/' + eventNumber, { method: 'POST' });
+  }
+
   function randomLetter() {
     return '12345'.charAt(Math.floor(Math.random() * 5));
   }
 
-  const eventSource = new EventSource('/sse/' + randomLetter());
-  eventSource.onmessage = ({ data }) => {
-    const message = document.createElement('li');
-    message.innerText = 'New message: ' + data;
-    document.body.appendChild(message);
-  };
+  const eventSources = new Map();
+
+  function subscribeToEvent(eventNumber) {
+    let eventSource = eventSources.get(eventNumber);
+
+    if (eventSource != undefined) {
+      eventSource.close();
+      eventSources.delete(eventNumber);
+      document.getElementById('btn-sub' + eventNumber).className = 'btn btn-danger';
+    } else {
+      eventSource = new EventSource('/sse/' + eventNumber);
+      document.getElementById('btn-sub' + eventNumber).className = 'btn btn-success';
+      eventSources.set(eventNumber, eventSource);
+      eventSource.onmessage = ({ data }) => {
+        const message = document.createElement('li');
+        message.innerText = 'New message: ' + data;
+        document.body.appendChild(message);
+      };
+    }
+  }
 </script>

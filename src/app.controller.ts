@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Res, Sse } from '@nestjs/common';
+import { Controller, Get, Param, Post, Res, Sse } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Response } from 'express';
-import { Observable, interval, map } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -13,19 +13,32 @@ import { join } from 'path';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  channels: Record<number, Subject<MessageEvent>>;
+  constructor(private readonly appService: AppService) {
+    this.channels = {
+      1: new Subject<MessageEvent>(),
+      2: new Subject<MessageEvent>(),
+      3: new Subject<MessageEvent>(),
+      4: new Subject<MessageEvent>(),
+      5: new Subject<MessageEvent>(),
+    };
+  }
 
   @Get()
   index(@Res() response: Response) {
-    response
-      .type('text/html')
-      .send(readFileSync(join(__dirname, 'index.html')).toString());
+    response.type('text/html').send(readFileSync(join(__dirname, 'index.html')).toString());
+  }
+
+  @Post('events/:id')
+  eventTrigger(@Param('id') id: number, @Res() response: Response) {
+    this.channels[id].next({
+      data: 'Event from channel ' + id,
+    } as MessageEvent);
+    response.status(201).send();
   }
 
   @Sse('sse/:id')
-  sse(@Param('id') id: string): Observable<MessageEvent> {
-    return interval(1000).pipe(
-      map(() => ({ data: { hello: 'world ' + id } }) as MessageEvent),
-    );
+  sse(@Param('id') id: number): Observable<MessageEvent> {
+    return this.channels[id].asObservable();
   }
 }
